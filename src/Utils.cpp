@@ -21,26 +21,21 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 #include <Arduino.h>
 #include "Utils.h"
 
-TON::TON()
-{
+TON::TON() {
   ulACC = 0;
 }
 
-void TON::Main()
-{
+void TON::Main() {
   ulCurrent_time = millis();
 
-  if(bEN)
-  {
-    if((ulACC < 0)||(ulPRE < 0))
-    {
+  if (bEN) {
+    if ((ulACC < 0) || (ulPRE < 0)) {
       // major fault
     } else {
       // set timer timing to true
       bTT = true;
- 
-      if(bDN)
-      {
+
+      if (bDN) {
         // if done clear timer timing
         bTT = false;
         ulLast_time = ulCurrent_time;
@@ -49,83 +44,76 @@ void TON::Main()
         ulLast_time = ulCurrent_time;
         ulACC = ulACC + ulDeltaT;
 
-        if(ulACC >= ulPRE)
-        {
+        if (ulACC >= ulPRE) {
           bTT = false;
           bDN = true;
         }
-      } // bDN
-    } // ACC < 0
+      }  // bDN
+    }    // ACC < 0
   } else {
     ulLast_time = ulCurrent_time;
     ulACC = 0;
     bTT = false;
     bDN = false;
-  } // bEN
-
+  }  // bEN
 }
 
-bool TON::DN()
-{
+bool TON::DN() {
   Main();
   return bDN;
 }
 
-void TON::EN(bool value)
-{
+void TON::EN(bool value) {
   bEN = value;
 }
 
-bool TON::EN()
-{
+bool TON::EN() {
+  Main();
   return bEN;
 }
 
-bool TON::TT()
-{
+bool TON::TT() {
+  Main();
   return bTT;
 }
 
-void TON::RES()
-{
+void TON::RES() {
   ulACC = 0;
   bTT = false;
   bDN = false;
 }
 
-long TON::ACC()
-{
+unsigned long TON::ACC() {
+  Main();
   return ulACC;
 }
 
-void TON::PRE(long value)
-{
+void TON::PRE(unsigned long value) {
   ulPRE = value;
 }
 
+unsigned long TON::PRE() {
+  Main();
+  return ulPRE;
+}
 /*******************************************************************************
 *
 *******************************************************************************/
-TOF::TOF()
-{
+TOF::TOF() {
   ulACC = 0;
 }
 
-void TOF::Main()
-{
+void TOF::Main() {
   ulCurrent_time = millis();
 
-  if(!bEN)
-  {
-    if((ulACC < 0)||(ulPRE < 0))
-    {
+  if (!bEN) {
+    if ((ulACC < 0) || (ulPRE < 0)) {
       // major fault
     } else {
       // set timer timing to true
       bTT = true;
- 
-      if(bDN)
-      {
+
+      if (bDN) {
         // if done clear timer timing
         bTT = false;
         ulLast_time = ulCurrent_time;
@@ -134,43 +122,36 @@ void TOF::Main()
         ulLast_time = ulCurrent_time;
         ulACC = ulACC + ulDeltaT;
 
-        if(ulACC >= ulPRE)
-        {
+        if (ulACC >= ulPRE) {
           bTT = false;
           bDN = true;
         }
-      } // bDN
-    } // ACC < 0
+      }  // bDN
+    }    // ACC < 0
   } else {
     ulLast_time = ulCurrent_time;
     ulACC = 0;
     bTT = false;
     bDN = false;
-  } // bEN
-
+  }  // bEN
 }
 
 
-RTO::RTO()
-{
-    ulACC = 0;
+RTO::RTO() {
+  ulACC = 0;
 }
 
-void RTO::Main()
-{
- ulCurrent_time = millis();
+void RTO::Main() {
+  ulCurrent_time = millis();
 
-  if(bEN)
-  {
-    if((ulACC < 0)||(ulPRE < 0))
-    {
+  if (bEN) {
+    if ((ulACC < 0) || (ulPRE < 0)) {
       // major fault
     } else {
       // set timer timing to true
       bTT = true;
- 
-      if(bDN)
-      {
+
+      if (bDN) {
         // if done clear timer timing
         bTT = false;
         ulLast_time = ulCurrent_time;
@@ -179,17 +160,41 @@ void RTO::Main()
         ulLast_time = ulCurrent_time;
         ulACC = ulACC + ulDeltaT;
 
-        if(ulACC >= ulPRE)
-        {
+        if (ulACC >= ulPRE) {
           bTT = false;
           bDN = true;
         }
-      } // bDN
-    } // ACC < 0
+      }  // bDN
+    }    // ACC < 0
   } else {
     ulLast_time = ulCurrent_time;
     bTT = false;
     bDN = false;
-  } // bEN
+  }  // bEN
+}
 
+Button::Button(int Pin, int STATE) {
+  // https://docs.arduino.cc/retired/hacking/software/PortManipulation/
+  switch (Pin) {
+    case 0 ... 7:
+      // PORTD maps to Arduino digital pins 0 to 7
+      // DDRD - The Port D Data Direction Register - read/write
+      // PORTD - The Port D Data Register - read/write
+      // PIND - The Port D Input Pins Register - read only
+      // DDRD = DDRD | B11111100; this is safer as it sets pins 2 to 7 as outputs without changing the value of pins 0 & 1, which are RX & TX
+      DDRD = DDRD | ~Pin;
+      break;
+    case 8 ... 13:
+      // PORTB
+      DDRB = DDRB | ~Pin;
+      break;
+
+    default:
+      // do nothing
+      break;
+  }
+}
+
+bool Button::Pressed() {
+  return true;
 }
