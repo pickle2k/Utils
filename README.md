@@ -1,2 +1,2 @@
 # Utils
-My general Arduino utlities.
+My general Arduino utilities.
